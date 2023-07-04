@@ -22,13 +22,14 @@ impl Logger {
 
     pub fn error(what: &str, exit: i32) {
         println!("{} {} {} {}", get_current_time(), "ERROR".bright_red().bold(), ":".black(), what);
-        (exit != 0).then(|| {
-            Logger::info("Exiting...");
+
+        if exit != 0 {
+            Logger::error("Exiting...", 0);
             std::process::exit(exit);
-        });
+        }
     }
 
-    pub fn unformatted(what: &str) {
+    pub fn print(what: &str) {
         println!("{what}");
     }
 }
