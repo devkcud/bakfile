@@ -11,7 +11,10 @@ pub struct BakFile;
 impl BakFile {
     pub fn new() -> () {
         if Path::new(".baker").exists() { return (); }
-        fs::write(".baker", "hello, world!").unwrap();
+
+        let template = "$set hello *\n\techo 'Hello, world!'\n$run";
+
+        fs::write(".baker", template).unwrap();
     }
 
     pub fn content() -> io::Result<String> {
