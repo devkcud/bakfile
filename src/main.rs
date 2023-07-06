@@ -9,7 +9,7 @@ mod ruler;
 
 use baker::BakFile;
 use logger::Logger;
-use ruler::SetRule;
+use ruler::Ruler;
 
 fn main() {
     let bakfile = match BakFile::new(String::from(".baker")) {
@@ -17,5 +17,5 @@ fn main() {
         Err(e) => Logger::exit(&format!("{e}")),
     };
 
-    SetRule::read(bakfile).unwrap();
+    Ruler::lookup_set_rules(bakfile).unwrap();
 }
