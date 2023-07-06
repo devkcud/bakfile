@@ -4,8 +4,12 @@ mod baker;
 #[allow(dead_code)]
 mod logger;
 
+#[allow(dead_code)]
+mod ruler;
+
 use baker::BakFile;
 use logger::Logger;
+use ruler::SetRule;
 
 fn main() {
     let bakfile = match BakFile::new(String::from(".baker")) {
@@ -13,10 +17,5 @@ fn main() {
         Err(e) => Logger::exit(&format!("{e}")),
     };
 
-    let content: &str = &match bakfile.read() {
-        Ok(o) => o,
-        Err(e) => Logger::exit(&format!("{e}")),
-    };
-
-    Logger::print(content);
+    SetRule::read(bakfile).unwrap();
 }
