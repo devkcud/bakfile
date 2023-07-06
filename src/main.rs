@@ -12,10 +12,11 @@ use logger::Logger;
 use ruler::Ruler;
 
 fn main() {
-    let bakfile = match BakFile::new(String::from(".baker")) {
+    let bakfile = match BakFile::new(".baker") {
         Ok(o) => o,
         Err(e) => Logger::exit(&format!("{e}")),
     };
 
     Ruler::lookup_set_rules(bakfile).unwrap();
+    Ruler::lookup_run_rules(bakfile).unwrap();
 }

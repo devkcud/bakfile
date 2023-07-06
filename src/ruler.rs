@@ -9,7 +9,12 @@ use crate::{baker::BakFile, logger::Logger};
 pub struct SetRule {
     pub name: String,
     pub commands: Vec<String>,
-    is_default: bool,
+    pub is_default: bool,
+}
+
+#[derive(Clone, Hash, PartialEq, Eq)]
+pub struct RunRule {
+    pub to_run: Vec<SetRule>,
 }
 
 pub struct Ruler;
@@ -60,5 +65,30 @@ impl Ruler {
         }
 
         return Ok(rules.into_iter().unique().collect_vec());
+    }
+
+    pub fn lookup_run_rules(bakfile: BakFile) -> io::Result<()> {
+        let content = bakfile.read()?;
+
+        let regex = Regex::new(r"(?m)^\$run.*$").unwrap();
+        let captures = regex.captures_iter(&content);
+
+        for capture in captures {
+            let mut rules_to_run = capture[0].split_whitespace().collect::<Vec<&str>>();
+            rules_to_run.remove(0);
+
+            if rules_to_run.len() == 0 {
+                // TODO: Run the default set rules
+                continue;
+            }
+
+            for set_rule in rules_to_run {
+                // TODO: Run the set rules (run)
+                Logger::info(set_rule);
+                continue;
+            }
+        }
+
+        return Ok(());
     }
 }

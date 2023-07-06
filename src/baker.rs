@@ -5,12 +5,13 @@ use colored::Colorize;
 
 use crate::logger::Logger;
 
-pub struct BakFile {
-    filename: String,
+#[derive(Clone, Copy)]
+pub struct BakFile<'a> {
+    filename: &'a str,
 }
 
-impl BakFile {
-    pub fn new(filename: String) -> io::Result<Self> {
+impl<'a> BakFile<'a> {
+    pub fn new(filename: &'a str) -> io::Result<Self> {
         Logger::info(&format!("Init {} file", filename.green()));
 
         if !Path::new(&filename).exists() {
@@ -28,7 +29,7 @@ impl BakFile {
         let mut buffer: String = String::new();
 
         Logger::log(&format!("Reading file {} (readonly)", self.filename.green()));
-        OpenOptions::new().read(true).write(false).open(&self.filename)?.read_to_string(&mut buffer)?;
+        OpenOptions::new().read(true).write(false).open(self.filename)?.read_to_string(&mut buffer)?;
 
         Logger::log(&format!("File {} read", self.filename.green()));
         return Ok(buffer);
