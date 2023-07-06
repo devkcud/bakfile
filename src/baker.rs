@@ -1,39 +1,36 @@
-// TODO: Check for file: .baker
-// TODO: Read file
 // TODO: Run rules
 
+use std::{io::{self, Read}, fs::{self, OpenOptions}, path::Path};
 use colored::Colorize;
 
-use super::logger::Logger;
-use std::{io::{self, Read}, fs::{OpenOptions, self}, path::Path};
+use crate::logger::Logger;
 
-pub struct BakFile;
+pub struct BakFile {
+    filename: String,
+}
 
 impl BakFile {
-    pub fn new() -> io::Result<()> {
-        Logger::info(&format!("Init {} file", ".baker".green()));
+    pub fn new(filename: String) -> io::Result<Self> {
+        Logger::info(&format!("Init {} file", filename.green()));
 
-        if Path::new(".baker").exists() {
-            Logger::log(&format!("File {} found", ".baker".green()));
-            return Ok(());
+        if !Path::new(&filename).exists() {
+            Logger::log(&format!("File {} not found; creating one", filename.green()));
+            fs::write(&filename, "$set hello *\n\techo 'Hello, world!'\n$run")?;
         }
 
-        fs::write(".baker", "$set hello *\n\techo 'Hello, world!'\n$run")?;
-
-        Logger::log(&format!("File {} created", ".baker".green()));
-        return Ok(());
+        Logger::log(&format!("File {} found", filename.green()));
+        return Ok(Self { filename });
     }
 
-    pub fn content() -> io::Result<String> {
-        Logger::info(&format!("Reading {} contents", ".baker".green()));
+    pub fn read(&self) -> io::Result<String> {
+        Logger::info(&format!("Reading {} content", self.filename.green()));
 
         let mut buffer: String = String::new();
 
-        Logger::log(&format!("Reading file {}", ".baker".green()));
-        Logger::log(&format!("Options: read ({}); write ({})", "true".green(), "false".red()));
-        OpenOptions::new().read(true).write(false).open(".baker")?.read_to_string(&mut buffer)?;
+        Logger::log(&format!("Reading file {} (readonly)", self.filename.green()));
+        OpenOptions::new().read(true).write(false).open(&self.filename)?.read_to_string(&mut buffer)?;
 
-        Logger::log(&format!("File {} read", ".baker".green()));
+        Logger::log(&format!("File {} read", self.filename.green()));
         return Ok(buffer);
     }
 }
