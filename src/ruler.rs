@@ -5,9 +5,7 @@ use regex::Regex;
 
 use crate::{baker::BakFile, logger::Logger};
 
-#[derive(Clone)]
-#[derive(Hash)]
-#[derive(PartialEq, Eq)]
+#[derive(Clone, Hash, PartialEq, Eq)]
 pub struct SetRule {
     pub name: String,
     pub commands: Vec<String>,
@@ -28,19 +26,14 @@ impl Ruler {
         let name_regex = Regex::new(r"[^a-zA-Z0-9]").unwrap();
 
         for capture in captures {
-            let capture = capture.get(0).unwrap().as_str().trim();
+            let capture = capture[0].trim();
 
             let commands = content
                 .lines()
-                .skip_while(|&x| {
-                    x != capture
-                })
+                .skip_while(|&x| x != capture)
                 .skip(1)
-                .take_while(|&x| {
-                    !x.starts_with('$')
-                })
-                .filter(|x| !x.is_empty())
-                .map(|x| String::from(x.trim()))
+                .take_while(|&x| !x.starts_with('$'))
+                .filter_map(|x| if x.is_empty() { None } else { Some(x.trim().to_string()) })
                 .collect::<Vec<String>>();
 
             let curline = content.lines().position(|x| x == capture).unwrap() + 1;
@@ -48,24 +41,24 @@ impl Ruler {
             let mut arguments = capture.split_whitespace().collect::<Vec<&str>>();
             arguments.remove(0);
 
-            let name = name_regex.replace_all(arguments[0], "").to_string();
-            let is_default = arguments.len() > 1 && arguments[1] == "*";
+            if let Some(arg) = arguments.get(0) {
+                let name = name_regex.replace_all(arg, "").to_string();
+                let is_default = arguments.len() > 1 && arguments[1] == "*";
 
-            if arguments.len() == 0 || name == "" {
-                Logger::exit(&format!("Rule {} at line {} | Proper define: {}", capture.red(), curline.to_string().red(), "$set <name> [*]".green()));
+                if name.is_empty() {
+                    Logger::exit(&format!("Rule {} at line {} | Proper define: {}", capture.red(), curline.to_string().red(), "$set <name> [*]".green()));
+                }
+
+                Logger::info(&format!("Loaded rule {} with {} commands (default: {})",
+                    name.purple().bold(),
+                    commands.len().to_string().purple().bold(),
+                    is_default.to_string().purple().bold()
+                ));
+
+                rules.push(SetRule { name, commands, is_default });
             }
-
-            Logger::info(&format!("Loaded rule {} with {} commands (default? {})",
-                name.purple().bold(),
-                commands.len().to_string().purple().bold(),
-                if is_default { "yes".green() } else { "no".red() }
-            ));
-
-            rules.push(SetRule { name, commands, is_default });
         }
 
-        let rules = rules.into_iter().unique().collect_vec();
-
-        return Ok(rules);
+        return Ok(rules.into_iter().unique().collect_vec());
     }
 }
