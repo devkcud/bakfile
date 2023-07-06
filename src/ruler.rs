@@ -9,20 +9,21 @@ use crate::{baker::BakFile, logger::Logger};
 #[derive(Hash)]
 #[derive(PartialEq, Eq)]
 pub struct SetRule {
-    name: String,
-    commands: Vec<String>,
+    pub name: String,
+    pub commands: Vec<String>,
     // TODO: Implement 'is_default' (is_default: bool)
 }
 
+pub struct Ruler;
 
-impl SetRule {
-    pub fn read(bakfile: BakFile) -> io::Result<Vec<Self>> {
+impl Ruler {
+    pub fn lookup_set_rules(bakfile: BakFile) -> io::Result<Vec<SetRule>> {
         let content = bakfile.read()?;
 
         let regex = Regex::new(r"(?m)^\$set.*$").unwrap();
         let captures = regex.captures_iter(&content);
 
-        let mut rules: Vec<Self> = Vec::new();
+        let mut rules: Vec<SetRule> = Vec::new();
 
         let name_regex = Regex::new(r"[^a-zA-Z0-9]").unwrap();
 
@@ -55,7 +56,7 @@ impl SetRule {
 
             Logger::info(&format!("Loaded rule {} with {} commands", name.purple().bold(), commands.len().to_string().purple().bold()));
 
-            rules.push(Self { name, commands });
+            rules.push(SetRule { name, commands });
         }
 
         let rules = rules.into_iter().unique().collect_vec();
