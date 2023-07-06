@@ -26,6 +26,11 @@ impl Logger {
         println!("{} {} {}", get_current_time(), "ERROR".bright_red().bold(), what);
     }
 
+    pub fn exit(what: &str) -> ! {
+        println!("{}  {} {}", get_current_time(), "EXIT".red().bold(), what);
+        std::process::exit(1);
+    }
+
     pub fn print(what: &str) {
         print!("{what}");
         match std::io::stdout().flush() { _ => () };
