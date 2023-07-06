@@ -11,7 +11,7 @@ use crate::{baker::BakFile, logger::Logger};
 pub struct SetRule {
     pub name: String,
     pub commands: Vec<String>,
-    // TODO: Implement 'is_default' (is_default: bool)
+    is_default: bool,
 }
 
 pub struct Ruler;
@@ -49,14 +49,19 @@ impl Ruler {
             arguments.remove(0);
 
             let name = name_regex.replace_all(arguments[0], "").to_string();
+            let is_default = arguments.len() > 1 && arguments[1] == "*";
 
             if arguments.len() == 0 || name == "" {
                 Logger::exit(&format!("Rule {} at line {} | Proper define: {}", capture.red(), curline.to_string().red(), "$set <name> [*]".green()));
             }
 
-            Logger::info(&format!("Loaded rule {} with {} commands", name.purple().bold(), commands.len().to_string().purple().bold()));
+            Logger::info(&format!("Loaded rule {} with {} commands (default? {})",
+                name.purple().bold(),
+                commands.len().to_string().purple().bold(),
+                if is_default { "yes".green() } else { "no".red() }
+            ));
 
-            rules.push(SetRule { name, commands });
+            rules.push(SetRule { name, commands, is_default });
         }
 
         let rules = rules.into_iter().unique().collect_vec();
