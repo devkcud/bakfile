@@ -1,3 +1,5 @@
+use std::io::Write;
+
 use chrono::prelude::*;
 use colored::Colorize;
 
@@ -20,16 +22,12 @@ impl Logger {
         println!("{}  {} {}", get_current_time(), "WARN".bright_yellow().bold(), what);
     }
 
-    pub fn error(what: &str, exit: i32) {
+    pub fn error(what: &str) {
         println!("{} {} {}", get_current_time(), "ERROR".bright_red().bold(), what);
-
-        if exit != 0 {
-            Logger::info("Exiting...");
-            std::process::exit(exit);
-        }
     }
 
     pub fn print(what: &str) {
-        println!("{what}");
+        print!("{what}");
+        match std::io::stdout().flush() { _ => () };
     }
 }
