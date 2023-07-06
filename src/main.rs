@@ -4,24 +4,19 @@ mod baker;
 #[allow(dead_code)]
 mod logger;
 
+use baker::BakFile;
 use logger::Logger;
 
 fn main() {
-    match baker::BakFile::new() {
-        Ok(_) => (),
-        Err(e) => {
-            Logger::error(&format!("{e}"));
-            std::process::exit(1);
-        },
-    };
-
-    let bak = match baker::BakFile::content() {
+    let bakfile = match BakFile::new(String::from(".baker")) {
         Ok(o) => o,
-        Err(e) => {
-            Logger::error(&format!("{e}"));
-            std::process::exit(1);
-        },
+        Err(e) => Logger::exit(&format!("{e}")),
     };
 
-    Logger::print(&bak);
+    let content: &str = &match bakfile.read() {
+        Ok(o) => o,
+        Err(e) => Logger::exit(&format!("{e}")),
+    };
+
+    Logger::print(content);
 }
