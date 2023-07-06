@@ -2,6 +2,9 @@
 // TODO: Read file
 // TODO: Run rules
 
+use colored::Colorize;
+
+use super::logger::Logger;
 use std::{io::{self, Read}, fs::{OpenOptions, self}, path::Path};
 
 pub struct BakFile;
@@ -10,19 +13,28 @@ pub struct BakFile;
 
 impl BakFile {
     pub fn new() -> () {
-        if Path::new(".baker").exists() { return (); }
+        Logger::info(&format!("Init {} file", ".baker".green()));
 
-        let template = "$set hello *\n\techo 'Hello, world!'\n$run";
+        if Path::new(".baker").exists() {
+            return Logger::log(&format!("File {} found", ".baker".green()));
+        }
 
-        fs::write(".baker", template).unwrap();
+        fs::write(".baker", "$set hello *\n\techo 'Hello, world!'\n$run").unwrap();
+        return Logger::log(&format!("File {} created", ".baker".green()));
     }
 
     pub fn content() -> io::Result<String> {
+        Logger::info(&format!("Reading {} contents", ".baker".green()));
+
         let oo = OpenOptions::new().read(true).write(false).open(".baker");
+        Logger::log(&format!("Options: read ({}); write ({})", "true".green(), "false".red()));
 
         let mut buffer: String = Default::default();
+
+        Logger::log(&format!("Reading file {}", ".baker".green()));
         oo.unwrap().read_to_string(&mut buffer).unwrap();
 
+        Logger::log(&format!("File {} read", ".baker".green()));
         return Ok(buffer);
     }
 }
