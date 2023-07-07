@@ -16,7 +16,7 @@ impl<'a> BakFile<'a> {
 
         if !Path::new(&filename).exists() {
             Logger::log(&format!("File {} not found; creating one", filename.green()));
-            fs::write(&filename, "$set hello *\n\techo 'Hello, world!'\n$run")?;
+            fs::write(&filename, "$define hello *\n\techo 'Hello, world!'\n$run")?;
         }
 
         Logger::log(&format!("File {} found", filename.green()));
