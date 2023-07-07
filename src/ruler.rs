@@ -24,7 +24,7 @@ fn run_commands(commands: Vec<String>) -> () {
 }
 
 #[derive(Clone, Debug, Hash, PartialEq, Eq)]
-pub struct SetRule {
+pub struct DefineRule {
     pub name: String,
     pub commands: Vec<String>,
     pub is_default: bool,
@@ -32,23 +32,23 @@ pub struct SetRule {
 
 #[derive(Clone, Debug, Hash, PartialEq, Eq)]
 pub struct RunRule {
-    pub to_run: Vec<SetRule>,
+    pub to_run: Vec<DefineRule>,
 }
 
 pub struct Ruler {
     file_content: String,
-    set_rules: Vec<SetRule>,
+    define_rules: Vec<DefineRule>,
 }
 
 impl Ruler {
     pub fn new(bakfile: BakFile) -> io::Result<Self> {
         let file_content = bakfile.read()?;
 
-        let regex = Regex::new(r"(?m)^\$set.*$").unwrap();
+        let regex = Regex::new(r"(?m)^\$define.*$").unwrap();
         let name_regex = Regex::new(r"[^a-zA-Z0-9]").unwrap();
         let captures = regex.captures_iter(&file_content);
 
-        let mut rules: Vec<SetRule> = Vec::new();
+        let mut rules: Vec<DefineRule> = Vec::new();
 
         for capture in captures {
             let capture = capture[0].trim();
@@ -71,7 +71,7 @@ impl Ruler {
                 let is_default = arguments.len() > 1 && arguments[1] == "*";
 
                 if name.is_empty() {
-                    Logger::exit(&format!("Rule {} at line {} | Proper define: {}", capture.red(), curline.to_string().red(), "$set <name> [*]".green()));
+                    Logger::exit(&format!("Rule {} at line {} | Proper define: {}", capture.red(), curline.to_string().red(), "$define <name> [*]".green()));
                 }
 
                 Logger::info(&format!("Loaded rule {} with {} commands (default: {})",
@@ -80,13 +80,13 @@ impl Ruler {
                     is_default.to_string().purple().bold()
                 ));
 
-                rules.push(SetRule { name, commands, is_default });
+                rules.push(DefineRule { name, commands, is_default });
             }
         }
 
         return Ok(Self {
             file_content,
-            set_rules: rules.into_iter().unique().collect_vec(),
+            define_rules: rules.into_iter().unique().collect_vec(),
         });
     }
 
@@ -99,14 +99,14 @@ impl Ruler {
             rules_to_run.remove(0);
 
             if rules_to_run.len() == 0 {
-                for rule in self.set_rules.iter().filter(|x| x.is_default) {
+                for rule in self.define_rules.iter().filter(|x| x.is_default) {
                     run_commands(rule.commands.clone());
                 }
                 continue;
             }
 
-            for set_rule in rules_to_run {
-                if let Some(rule) = self.set_rules.iter().find(|x| x.name == set_rule) {
+            for define_rule in rules_to_run {
+                if let Some(rule) = self.define_rules.iter().find(|x| x.name == define_rule) {
                     run_commands(rule.commands.clone());
                 }
             }
