@@ -15,10 +15,12 @@ pub struct Rule {
 
 impl Rule {
     pub fn gather(content: String) -> io::Result<Vec<Self>> {
+        Logger::info("Started gathering define rules");
         let mut rules: Vec<Self> = Vec::new();
 
-        for capture in Regex::new(r"(?m)^\$define.* $").unwrap().captures_iter(&content) {
+        for capture in Regex::new(r"(?m)^\$define.*$").unwrap().captures_iter(&content) {
             let capture = capture[0].trim();
+            let line_id = content.lines().position(|x| x == capture).unwrap() + 1;
 
             let commands = content
                 .lines()
@@ -33,19 +35,29 @@ impl Rule {
 
             if let Some(arg) = arguments.get(0) {
                 let name = Regex::new(r"[^a-zA-Z0-9]").unwrap().replace_all(arg, "").to_string();
-                let is_default = arguments.len() > 1 && arguments[1] == "*";
 
                 if name.is_empty() {
-                    Logger::exit(&format!("Rule {} at line {} | Proper define: {}", capture.red(), (content.lines().position(|x| x == capture).unwrap() + 1).to_string().red(), "$define <name> [*]".green()));
+                    Logger::exit(&format!("Rule {} at line {} | Proper define: {}", capture.red(), line_id.to_string().red(), "$define <name> [*]".green()));
                 }
 
-                Logger::info(&format!("Loaded rule {} with {} commands (default: {})",
-                    name.purple().bold(),
-                    commands.len().to_string().purple().bold(),
-                    is_default.to_string().purple().bold()
-                ));
+                if rules.iter().find(|x| x.name == name).is_none() {
+                    let default = rules.iter().find(|x| x.is_default);
+                    let is_default = arguments.len() > 1 && arguments[1] == "*" && default.is_none();
 
-                rules.push(Self { name, commands, is_default });
+                    if default.is_some() {
+                        Logger::warn(&format!("{} can't be defaulted. Rule {} is already the default", name.purple().bold(), default.unwrap().name.purple().bold()));
+                    }
+
+                    Logger::log(&format!("Loaded rule {} with {} commands (default: {})",
+                        name.purple().bold(),
+                        commands.len().to_string().purple().bold(),
+                        is_default.to_string().purple().bold()
+                    ));
+
+                    rules.push(Self { name, commands, is_default });
+                } else {
+                    Logger::warn(&format!("Rule {} already defined at {}", name.purple().bold(), format!("line {}", line_id).red()));
+                }
             }
         }
 
