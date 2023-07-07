@@ -17,6 +17,13 @@ fn main() {
         Err(e) => Logger::exit(&format!("{e}")),
     };
 
-    Ruler::lookup_set_rules(bakfile).unwrap();
-    Ruler::lookup_run_rules(bakfile).unwrap();
+    let ruler = match Ruler::new(bakfile) {
+        Ok(o) => o,
+        Err(e) => Logger::exit(&format!("{e}")),
+    };
+
+    match ruler.setup_run() {
+        Ok(_) => (),
+        Err(e) => Logger::exit(&format!("{e}")),
+    };
 }
