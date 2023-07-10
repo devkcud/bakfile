@@ -18,11 +18,32 @@ fn main() {
         Err(e) => Logger::exit(&format!("{e}")),
     };
 
-    for capture in Regex::new(r"(?m)^\$run.*$").unwrap().captures_iter(&content) {}
+    // TODO: Write better code :(
+    // TODO: Remove repeated code
+    for capture in Regex::new(r"(?m)^\$run.*$").unwrap().captures_iter(&bakfile.read().unwrap_or(String::new())) {
+        let mut args = capture[0].trim().split_whitespace().collect::<Vec<&str>>();
+        args.remove(0);
 
-    if let Ok(rules) = define_rule::Rule::gather(bakfile.read().unwrap_or(String::new())) {
-        for rule in rules { rule.run(); }
+        if args.len() == 0 {
+            if let Ok(rules) = define_rule::Rule::gather(bakfile.read().unwrap_or(String::new())) {
+                if let Some(rule) = rules.iter().find(|x| x.is_default) {
+                    rule.run();
+                }
+            }
+
+            break;
+        }
+
+        if let Ok(rules) = define_rule::Rule::gather(bakfile.read().unwrap_or(String::new())) {
+            for arg in args {
+                if let Some(rule) = rules.iter().find(|x| x.name == arg) {
+                    // why much nesting wtf
+                    rule.run();
+                }
+            }
+        }
     }
+
 
     Logger::info("Program ended");
 }
