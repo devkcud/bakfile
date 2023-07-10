@@ -14,13 +14,13 @@ pub struct Rule {
 }
 
 impl Rule {
-    pub fn gather(content: String) -> io::Result<Vec<Self>> {
+    pub fn gather(content: &str) -> io::Result<Vec<Self>> {
         Logger::info("Started gathering define rules");
         let mut rules: Vec<Self> = Vec::new();
 
         let name_regex = Regex::new(r"[^a-zA-Z0-9]").unwrap();
 
-        for capture in Regex::new(r"(?m)^\$define.*$").unwrap().captures_iter(&content) {
+        for capture in Regex::new(r"(?m)^\$define.*$").unwrap().captures_iter(content) {
             let capture = capture[0].trim();
             let line_id = content.lines().position(|x| x == capture).unwrap() + 1;
 
