@@ -64,14 +64,16 @@ impl Rule {
         return Ok(rules.into_iter().unique().collect_vec());
     }
 
-    fn run(&self) {
-        for command in self.commands.iter() {
-            Logger::info(&format!("Running {}", command.purple().bold()));
+    pub fn run(&self) {
+        Logger::info(&format!("Running rule {} ({} commands)", self.name.purple().bold(), self.commands.len().to_string().purple().bold()));
 
+        for command in self.commands.iter() {
             match Command::new("sh").arg("-c").arg(command).output() {
                 Ok(o) => Logger::print(&String::from_utf8_lossy(if !o.stdout.is_empty() { &o.stdout } else { &o.stderr })),
                 Err(e) => Logger::error(&e.to_string()),
             }
         }
+
+        Logger::info(&format!("Done running rule {} ({} commands)", self.name.purple().bold(), self.commands.len().to_string().purple().bold()));
     }
 }
