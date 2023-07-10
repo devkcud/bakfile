@@ -9,6 +9,7 @@ mod rules;
 
 use baker::BakFile;
 use logger::Logger;
+use regex::Regex;
 use rules::define_rule;
 
 fn main() {
@@ -17,5 +18,11 @@ fn main() {
         Err(e) => Logger::exit(&format!("{e}")),
     };
 
-    define_rule::Rule::gather(bakfile.read().unwrap_or(String::new())).unwrap();
+    for capture in Regex::new(r"(?m)^\$run.*$").unwrap().captures_iter(&content) {}
+
+    if let Ok(rules) = define_rule::Rule::gather(bakfile.read().unwrap_or(String::new())) {
+        for rule in rules { rule.run(); }
+    }
+
+    Logger::info("Program ended");
 }
