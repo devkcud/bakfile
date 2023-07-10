@@ -18,6 +18,8 @@ impl Rule {
         Logger::info("Started gathering define rules");
         let mut rules: Vec<Self> = Vec::new();
 
+        let name_regex = Regex::new(r"[^a-zA-Z0-9]").unwrap();
+
         for capture in Regex::new(r"(?m)^\$define.*$").unwrap().captures_iter(&content) {
             let capture = capture[0].trim();
             let line_id = content.lines().position(|x| x == capture).unwrap() + 1;
@@ -34,7 +36,7 @@ impl Rule {
             arguments.remove(0);
 
             if let Some(arg) = arguments.get(0) {
-                let name = Regex::new(r"[^a-zA-Z0-9]").unwrap().replace_all(arg, "").to_string();
+                let name = name_regex.replace_all(arg, "").to_string();
 
                 if name.is_empty() {
                     Logger::exit(&format!("Rule {} at line {} | Proper define: {}", capture.red(), line_id.to_string().red(), "$define <name> [*]".green()));
