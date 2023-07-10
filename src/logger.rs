@@ -8,7 +8,7 @@ fn get_current_time() -> String {
 }
 
 #[derive(Debug, PartialEq)]
-pub enum LogLevels {
+pub enum LogLevel {
     /// Disable logs
     None,
     /// Log `info` and `logs`
@@ -20,48 +20,48 @@ pub enum LogLevels {
 }
 
 lazy_static::lazy_static! {
-    static ref LOG_LEVEL: Mutex<LogLevels> = Mutex::new(LogLevels::Full);
+    static ref LOG_LEVEL: Mutex<LogLevel> = Mutex::new(LogLevel::Full);
 }
 
 pub struct Logger;
 
 impl Logger {
-    pub fn set_level(level: LogLevels) {
+    pub fn set_level(level: LogLevel) {
         let mut log_level = LOG_LEVEL.lock().unwrap();
         *log_level = level;
     }
 
     pub fn info(what: &str) {
         let log_level = LOG_LEVEL.lock().unwrap();
-        if *log_level != LogLevels::Full && *log_level != LogLevels::Info { return; }
+        if *log_level != LogLevel::Full && *log_level != LogLevel::Info { return; }
 
         println!("{}  {} {}", get_current_time(), "INFO".bright_green().bold(), what);
     }
 
     pub fn log(what: &str) {
         let log_level = LOG_LEVEL.lock().unwrap();
-        if *log_level != LogLevels::Full && *log_level != LogLevels::Info { return; }
+        if *log_level != LogLevel::Full && *log_level != LogLevel::Info { return; }
 
         println!("{}   {} {}", get_current_time(), "LOG".bright_blue().bold(), what);
     }
 
     pub fn warn(what: &str) {
         let log_level = LOG_LEVEL.lock().unwrap();
-        if *log_level != LogLevels::Full && *log_level != LogLevels::Fault { return; }
+        if *log_level != LogLevel::Full && *log_level != LogLevel::Fault { return; }
 
         println!("{}  {} {}", get_current_time(), "WARN".bright_yellow().bold(), what);
     }
 
     pub fn error(what: &str) {
         let log_level = LOG_LEVEL.lock().unwrap();
-        if *log_level != LogLevels::Full && *log_level != LogLevels::Fault { return; }
+        if *log_level != LogLevel::Full && *log_level != LogLevel::Fault { return; }
 
         println!("{} {} {}", get_current_time(), "ERROR".bright_red().bold(), what);
     }
 
     pub fn exit(what: &str) -> ! {
         let log_level = LOG_LEVEL.lock().unwrap();
-        if *log_level != LogLevels::Full && *log_level != LogLevels::Fault { std::process::exit(1); }
+        if *log_level != LogLevel::Full && *log_level != LogLevel::Fault { std::process::exit(1); }
 
         println!("{}  {} {}", get_current_time(), "EXIT".red().bold(), what);
         std::process::exit(1);
