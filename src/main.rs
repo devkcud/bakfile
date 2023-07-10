@@ -8,9 +8,10 @@ mod logger;
 mod rules;
 
 use baker::BakFile;
+use colored::Colorize;
 use logger::Logger;
 use regex::Regex;
-use rules::define_rule;
+use rules::define_rule::{self, Rule};
 
 fn main() {
     let bakfile = match BakFile::new(".baker") {
@@ -18,32 +19,35 @@ fn main() {
         Err(e) => Logger::exit(&format!("{e}")),
     };
 
-    // TODO: Write better code :(
-    // TODO: Remove repeated code
-    for capture in Regex::new(r"(?m)^\$run.*$").unwrap().captures_iter(&bakfile.read().unwrap_or(String::new())) {
-        let mut args = capture[0].trim().split_whitespace().collect::<Vec<&str>>();
-        args.remove(0);
+    let content = match bakfile.read() {
+        Ok(o) => o,
+        Err(e) => Logger::exit(&format!("{e}")),
+    };
 
-        if args.len() == 0 {
-            if let Ok(rules) = define_rule::Rule::gather(bakfile.read().unwrap_or(String::new())) {
-                if let Some(rule) = rules.iter().find(|x| x.is_default) {
-                    rule.run();
-                }
-            }
+    let rules: Vec<Rule> = match define_rule::Rule::gather(&content) {
+        Ok(o) => o,
+        Err(e) => Logger::exit(&format!("{e}")),
+    };
 
-            break;
+    for capture in Regex::new(r"(?m)^\$run.*$").unwrap().captures_iter(&content) {
+        let mut names: Vec<&str> = capture[0].trim().split_whitespace().collect();
+        names.remove(0); // Remove '$run'
+
+        if names.is_empty() {
+            rules.iter().find(|x| x.is_default).unwrap_or_else(|| Logger::exit("No default rule found")).run();
         }
 
-        if let Ok(rules) = define_rule::Rule::gather(bakfile.read().unwrap_or(String::new())) {
-            for arg in args {
-                if let Some(rule) = rules.iter().find(|x| x.name == arg) {
-                    // why much nesting wtf
-                    rule.run();
-                }
-            }
+        for name in names {
+            rules
+                .iter()
+                .find(|x| x.name == name)
+                .unwrap_or_else(|| Logger::exit(&format!("No rule {} found at line {}",
+                     name.purple().bold(),
+                     (content.lines().position(|x| x == &capture[0]).unwrap() + 1).to_string().purple().bold()
+                 )))
+                .run();
         }
     }
-
 
     Logger::info("Program ended");
 }
