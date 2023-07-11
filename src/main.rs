@@ -7,29 +7,35 @@ mod logger;
 #[allow(dead_code)]
 mod rules;
 
+#[allow(dead_code)]
+mod config;
+
 use std::io;
 
 use baker::BakFile;
 use colored::Colorize;
+use config::Config;
 use logger::Logger;
 use regex::Regex;
-use rules::define_rule::{self, Rule};
+use rules::define_rule;
 
 fn main() {
+    Config::setup(Config::default());
+
     if let Err(e) = run_program() { Logger::exit(&format!("An error occurred: {}", e)); }
     Logger::info("Program ended");
 }
 
-fn find_rule<T>(rules: &[Rule], cond: T, exitstr: &str) -> ()
+fn find_rule<T>(rules: &[define_rule::Rule], cond: T, exitstr: &str) -> ()
 where
-    T: Fn(&&Rule) -> bool
+    T: Fn(&&define_rule::Rule) -> bool
 {
     rules.iter().find(cond).unwrap_or_else(|| Logger::exit(exitstr)).run();
 }
 
 fn run_program() -> io::Result<()> {
-    let content: String   = BakFile::new(".baker")?.read()?;
-    let rules:   Vec<Rule> = define_rule::Rule::gather(&content)?;
+    let content: String                 = BakFile::new(".baker")?.read()?;
+    let rules:   Vec<define_rule::Rule> = define_rule::Rule::gather(&content)?;
 
     for capture in Regex::new(r"(?m)^\$run.*$").unwrap().captures_iter(&content) {
         let mut names: Vec<&str> = capture[0].trim().split_whitespace().collect();
