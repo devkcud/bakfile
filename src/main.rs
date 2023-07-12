@@ -17,7 +17,7 @@ use rules::define_rule;
 fn main() {
     let argman = Arguer::new();
 
-    if argman.has_flag("h") {
+    if argman.has_flag("local") {
         Logger::log("Hello!");
     }
 
