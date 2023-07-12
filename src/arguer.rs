@@ -1,17 +1,14 @@
 use std::env::args;
 
-#[allow(dead_code)]
 pub struct Arguer {
-    commands: Vec<String>,
-    flags:    Vec<String>,
+    flags: Vec<String>,
 }
 
 impl Arguer {
     pub fn new() -> Self {
-        let commands: Vec<String> = args().filter(|x| !x.starts_with('-')).collect();
         let flags:    Vec<String> = args().filter(|x|  x.starts_with('-')).collect();
 
-        return Self { commands, flags };
+        return Self { flags };
     }
 
     pub fn get_flag(&self, name: &str) -> Option<(&str, &str)> {
