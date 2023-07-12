@@ -3,7 +3,7 @@ use std::{sync::RwLock, path::PathBuf, fs, io};
 use crate::logger::LogLevel;
 
 lazy_static::lazy_static! {
-    static ref CONFIG: RwLock<Config> = RwLock::new(Config::default());
+    static ref CONFIG: RwLock<Config> = RwLock::new(Default::default());
 }
 
 fn parse_bool(s: &str) -> Option<bool> {
@@ -14,7 +14,7 @@ fn parse_bool(s: &str) -> Option<bool> {
     }
 }
 
-fn parse_log_level(s: &str) -> Option<LogLevel> {
+fn parse_log(s: &str) -> Option<LogLevel> {
     match s.to_lowercase().trim() {
         "none"  => Some(LogLevel::None),
         "info"  => Some(LogLevel::Info),
@@ -27,8 +27,18 @@ fn parse_log_level(s: &str) -> Option<LogLevel> {
 #[derive(Clone, Copy, Debug)]
 pub struct Config {
     pub gen_files: bool,
-    pub log_level: LogLevel,
+    pub log: LogLevel,
     pub colors:    bool,
+}
+
+impl Default for Config {
+    fn default() -> Self {
+        return Self {
+            gen_files: false,
+            log: LogLevel::Fault,
+            colors:    true,
+        };
+    }
 }
 
 impl Config {
@@ -36,17 +46,15 @@ impl Config {
         let config_dir = match dirs::config_dir() {
             Some(o) => o,
             None => {
-                return Ok(*CONFIG.write().unwrap() = Self::default());
+                return Ok(*CONFIG.write().unwrap() = Default::default());
             },
         };
 
         let config_file: PathBuf = PathBuf::from(format!("{}/bakfile/config", config_dir.to_str().unwrap()));
 
         if !config_file.exists() || !config_file.is_file() {
-            return Ok(*CONFIG.write().unwrap() = Self::default());
+            return Ok(*CONFIG.write().unwrap() = Default::default());
         }
-
-        let mut config = *CONFIG.write().unwrap();
 
         for line in fs::read_to_string(config_file)?.lines().filter(|x| !x.is_empty() && !x.starts_with('$')) {
             let line = line.split_whitespace().collect::<Vec<&str>>();
@@ -56,9 +64,9 @@ impl Config {
             let value: &str = line[1];
 
             match key {
-                "gen_files" => config.gen_files = parse_bool(value).unwrap_or(true),
-                "log_level" => config.log_level = parse_log_level(value).unwrap_or(LogLevel::Fault),
-                "colors"    => config.colors    = parse_bool(value).unwrap_or(true),
+                "gen_files" => CONFIG.write().unwrap().gen_files = parse_bool(value).unwrap_or(true),
+                "log" => CONFIG.write().unwrap().log = parse_log(value).unwrap_or(Default::default()),
+                "colors"    => CONFIG.write().unwrap().colors    = parse_bool(value).unwrap_or(true),
                 _ => (),
             }
         }
@@ -66,16 +74,7 @@ impl Config {
         return Ok(());
     }
 
-    pub fn default() -> Self {
-        return Self {
-            gen_files: false,
-            log_level: LogLevel::Fault,
-            colors:    true,
-        };
-    }
-
     pub fn get_config() -> Config {
-        let config = *CONFIG.read().unwrap();
-        return config;
+        return *CONFIG.read().unwrap();
     }
 }

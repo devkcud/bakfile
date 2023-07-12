@@ -13,7 +13,7 @@ mod config;
 use std::io;
 
 use baker::BakFile;
-use colored::Colorize;
+use colored::{Colorize, control};
 use config::Config;
 use logger::Logger;
 use regex::Regex;
@@ -21,6 +21,11 @@ use rules::define_rule;
 
 fn main() {
     if let Err(e) = Config::setup() { Logger::exit(&format!("An error occurred: {}", e)); }
+
+    let config = Config::get_config();
+    control::set_override(config.colors);
+    Logger::set_level(config.log);
+
     if let Err(e) = run_program() { Logger::exit(&format!("An error occurred: {}", e)); }
     Logger::info("Program ended");
 }
