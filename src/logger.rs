@@ -19,6 +19,17 @@ pub enum LogLevel {
     Full,
 }
 
+impl ToString for LogLevel {
+    fn to_string(&self) -> String {
+        match self {
+            LogLevel::None  => "None".to_string(),
+            LogLevel::Info  => "Info".to_string(),
+            LogLevel::Fault => "Fault".to_string(),
+            LogLevel::Full  => "Full".to_string(),
+        }
+    }
+}
+
 lazy_static::lazy_static! {
     static ref LOG_LEVEL: Mutex<LogLevel> = Mutex::new(LogLevel::Full);
 }

@@ -20,8 +20,7 @@ use regex::Regex;
 use rules::define_rule;
 
 fn main() {
-    Config::setup(Config::default());
-
+    if let Err(e) = Config::setup() { Logger::exit(&format!("An error occurred: {}", e)); }
     if let Err(e) = run_program() { Logger::exit(&format!("An error occurred: {}", e)); }
     Logger::info("Program ended");
 }
