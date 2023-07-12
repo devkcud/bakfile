@@ -7,7 +7,7 @@ fn get_current_time() -> String {
     return format!("{}", Local::now().format("%H:%M:%S").to_string().dimmed());
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub enum LogLevel {
     /// Disable logs
     None,
