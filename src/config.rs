@@ -1,8 +1,6 @@
 use std::{sync::{Mutex, MutexGuard}, path::PathBuf, fs, io};
 
-use colored::Colorize;
-
-use crate::logger::{LogLevel, Logger};
+use crate::logger::LogLevel;
 
 lazy_static::lazy_static! {
     static ref CONFIG: Mutex<Config> = Mutex::new(Config::default());
@@ -12,10 +10,7 @@ fn parse_bool(s: &str) -> Option<bool> {
     match s.to_lowercase().trim() {
         "true" => Some(true),
         "false" => Some(false),
-        _ => {
-            Logger::warn(&format!("Expected {}, found {}", "false/true".cyan(), s.red()));
-            None
-        },
+        _ => None,
     }
 }
 
@@ -25,10 +20,7 @@ fn parse_log_level(s: &str) -> Option<LogLevel> {
         "info" => Some(LogLevel::Info),
         "fault" => Some(LogLevel::Fault),
         "full" => Some(LogLevel::Full),
-        _ => {
-            Logger::warn(&format!("Expected {}, found {}", "none/info/fault/full".cyan(), s.red()));
-            None
-        },
+        _ => None,
     }
 }
 
@@ -41,12 +33,9 @@ pub struct Config {
 
 impl Config {
     pub fn setup() -> io::Result<()> {
-        Logger::info(&format!("Searching for config file: {}", "{{CONFIG_DIR}}/bakfile/config"));
-
         let config_dir = match dirs::config_dir() {
             Some(o) => o,
             None => {
-                Logger::warn("Cannot access config dir");
                 return Ok(*CONFIG.lock().unwrap() = Self::default());
             },
         };
@@ -54,11 +43,8 @@ impl Config {
         let config_file: PathBuf = PathBuf::from(format!("{}/bakfile/config", config_dir.to_str().unwrap()));
 
         if !config_file.exists() || !config_file.is_file() {
-            Logger::warn("Config file not found; using default");
             return Ok(*CONFIG.lock().unwrap() = Self::default());
         }
-
-        Logger::log("Config file found");
 
         for line in fs::read_to_string(config_file)?.lines().filter(|x| !x.is_empty() && !x.starts_with('$')) {
             let line = line.split_whitespace().collect::<Vec<&str>>();
@@ -69,21 +55,15 @@ impl Config {
 
             match key {
                 "gen_files" => {
-                    Logger::log(&format!("Found key {}", key.purple().bold()));
                     CONFIG.lock().unwrap().gen_files = parse_bool(value).unwrap_or(true);
-                    Logger::warn(&format!("Set key {} to {}", key.purple().bold(), CONFIG.lock().unwrap().gen_files.to_string().green()));
                 },
                 "log_level" => {
-                    Logger::log(&format!("Found key {}", key.purple().bold()));
                     CONFIG.lock().unwrap().log_level = parse_log_level(value).unwrap_or(LogLevel::Fault);
-                    Logger::warn(&format!("Set key {} to {}", key.purple().bold(), CONFIG.lock().unwrap().log_level.to_string().green()));
                 },
                 "colors" => {
-                    Logger::log(&format!("Found key {}", key.purple().bold()));
                     CONFIG.lock().unwrap().colors = parse_bool(value).unwrap_or(true);
-                    Logger::warn(&format!("Set key {} to {}", key.purple().bold(), CONFIG.lock().unwrap().colors.to_string().green()));
                 },
-                _ => Logger::error(&format!("{} is not a valid key", key.purple().bold())),
+                _ => (),
             }
         }
 
