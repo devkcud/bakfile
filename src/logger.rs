@@ -19,6 +19,12 @@ pub enum LogLevel {
     Full,
 }
 
+impl Default for LogLevel {
+    fn default() -> Self {
+        return Self::Fault;
+    }
+}
+
 impl ToString for LogLevel {
     fn to_string(&self) -> String {
         match self {
