@@ -1,5 +1,3 @@
-// TODO: Run rules
-
 use std::{io::{self, Read}, fs::{self, OpenOptions}, path::Path};
 use colored::Colorize;
 

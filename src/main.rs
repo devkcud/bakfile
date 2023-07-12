@@ -1,13 +1,6 @@
-#[allow(dead_code)]
 mod baker;
-
-#[allow(dead_code)]
 mod logger;
-
-#[allow(dead_code)]
 mod rules;
-
-#[allow(dead_code)]
 mod config;
 
 use std::io;
