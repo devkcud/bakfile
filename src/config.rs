@@ -65,7 +65,7 @@ impl Config {
 
             match key {
                 "gen_files" => CONFIG.write().unwrap().gen_files = parse_bool(value).unwrap_or(true),
-                "log"       => CONFIG.write().unwrap().log = parse_log(value).unwrap_or(Default::default()),
+                "log"       => CONFIG.write().unwrap().log       = parse_log(value).unwrap_or(Default::default()),
                 "colors"    => CONFIG.write().unwrap().colors    = parse_bool(value).unwrap_or(true),
                 _ => (),
             }
