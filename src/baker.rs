@@ -21,7 +21,7 @@ impl<'a> BakFile<'a> {
             fs::write(&filename, "$define hello *\n\techo 'Hello, world!'\n$run")?;
         }
 
-        Logger::warn(&format!("File {} found", filename.green()));
+        Logger::log(&format!("File {} found", filename.green()));
         return Ok(Self { filename });
     }
 
