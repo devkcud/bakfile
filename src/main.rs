@@ -2,8 +2,6 @@ mod baker;
 mod logger;
 mod rules;
 mod config;
-
-#[allow(dead_code)]
 mod arguer;
 
 use std::io;
