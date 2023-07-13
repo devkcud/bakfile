@@ -50,9 +50,9 @@ impl Config {
         }
 
         let config_file: PathBuf = PathBuf::from(if using_local {
-            format!("{}/bakfile/config", config_dir().unwrap().to_str().unwrap())
-        } else {
             String::from("./.baker.config")
+        } else {
+            format!("{}/bakfile/config", config_dir().unwrap().to_str().unwrap())
         });
 
         if !config_file.exists() || !config_file.is_file() {
