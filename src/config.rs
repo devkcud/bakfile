@@ -1,9 +1,10 @@
 use std::{sync::RwLock, path::PathBuf, fs, io};
 
+use dirs::config_dir;
+
 use crate::logger::LogLevel;
 
 lazy_static::lazy_static! {
-    static ref USING_LOCAL: RwLock<bool>   = RwLock::new(false);
     static ref CONFIG:      RwLock<Config> = RwLock::new(Default::default());
 }
 
@@ -15,7 +16,7 @@ fn parse_bool(s: &str) -> Option<bool> {
     }
 }
 
-fn parse_log(s: &str) -> Option<LogLevel> {
+fn parse_logl(s: &str) -> Option<LogLevel> {
     match s.to_lowercase().trim() {
         "none"  => Some(LogLevel::None),
         "info"  => Some(LogLevel::Info),
@@ -28,7 +29,7 @@ fn parse_log(s: &str) -> Option<LogLevel> {
 #[derive(Clone, Copy, Debug)]
 pub struct Config {
     pub gen_files: bool,
-    pub log: LogLevel,
+    pub log:       LogLevel,
     pub colors:    bool,
 }
 
@@ -44,36 +45,30 @@ impl Default for Config {
 
 impl Config {
     pub fn setup(using_local: bool) -> io::Result<()> {
-        *USING_LOCAL.write().unwrap() = using_local;
+        if let None = dirs::config_dir() {
+            return Ok(*CONFIG.write().unwrap() = Default::default());
+        }
 
-        let config_dir = match dirs::config_dir() {
-            Some(o) => o,
-            None => {
-                return Ok(*CONFIG.write().unwrap() = Default::default());
-            },
-        };
-
-        let config_file = PathBuf::from(if using_local {
-            format!("{}/bakfile/config", config_dir.to_str().unwrap())
+        let config_file: PathBuf = PathBuf::from(if using_local {
+            format!("{}/bakfile/config", config_dir().unwrap().to_str().unwrap())
         } else {
             String::from("./.baker.config")
         });
 
         if !config_file.exists() || !config_file.is_file() {
-            println!("NOT FOUND: {:?}", config_file);
             return Ok(*CONFIG.write().unwrap() = Default::default());
         }
 
-        for line in fs::read_to_string(config_file)?.lines().filter(|x| !x.is_empty() && !x.starts_with('$')) {
-            let line = line.split_whitespace().collect::<Vec<&str>>();
-            if line.len() != 2 { continue; }
+        for line in fs::read_to_string(config_file)?.lines().filter(|x| !x.is_empty() && !x.starts_with(';')) {
+            let options: Vec<&str> = line.split_whitespace().collect();
+            if options.len() != 2 { continue; }
 
-            let key:   &str = line[0];
-            let value: &str = line[1];
+            let key:   &str = options.get(0).unwrap();
+            let value: &str = options.get(1).unwrap();
 
             match key {
                 "gen_files" => CONFIG.write().unwrap().gen_files = parse_bool(value).unwrap_or(true),
-                "log"       => CONFIG.write().unwrap().log       = parse_log(value).unwrap_or(Default::default()),
+                "log"       => CONFIG.write().unwrap().log       = parse_logl(value).unwrap_or(Default::default()),
                 "colors"    => CONFIG.write().unwrap().colors    = parse_bool(value).unwrap_or(true),
                 _ => (),
             }
