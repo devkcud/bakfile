@@ -13,12 +13,13 @@ impl<'a> BakFile<'a> {
         Logger::info(&format!("Init {} file", filename.green()));
 
         if !Path::new(&filename).exists() {
-            Logger::warn(&format!("File {} not found", filename.green()));
+            Logger::error(&format!("File {} not found", filename.green()));
             if !Config::get_config().gen_files {
                 return Err(io::Error::new(io::ErrorKind::PermissionDenied, "gen_files is disabled"));
             }
 
             fs::write(&filename, "$define hello *\n\techo 'Hello, world!'\n$run")?;
+            Logger::log(&format!("File {} created", filename.green()));
         }
 
         Logger::log(&format!("File {} found", filename.green()));

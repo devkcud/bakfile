@@ -37,12 +37,7 @@ where
 fn run_program(argman: &Arguer) -> io::Result<()> {
     let flag = argman.get_flag("rulefile");
 
-    let content = if flag.is_none() || flag.unwrap().1 == "" {
-        BakFile::new(".baker")?.read()?
-    } else {
-        BakFile::new(flag.unwrap().1)?.read()?
-    };
-
+    let content = BakFile::new(if flag.is_none() || flag.unwrap().1 == "" { Config::get_config().rulefilename } else { flag.unwrap().1 })?.read()?;
     let rules: Vec<define_rule::Rule> = define_rule::Rule::gather(&content)?;
 
     for capture in Regex::new(r"(?m)^\$run.*$").unwrap().captures_iter(&content) {
