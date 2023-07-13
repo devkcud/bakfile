@@ -3,7 +3,8 @@ use std::{sync::RwLock, path::PathBuf, fs, io};
 use crate::logger::LogLevel;
 
 lazy_static::lazy_static! {
-    static ref CONFIG: RwLock<Config> = RwLock::new(Default::default());
+    static ref USING_LOCAL: RwLock<bool>   = RwLock::new(false);
+    static ref CONFIG:      RwLock<Config> = RwLock::new(Default::default());
 }
 
 fn parse_bool(s: &str) -> Option<bool> {
@@ -35,14 +36,16 @@ impl Default for Config {
     fn default() -> Self {
         return Self {
             gen_files: false,
-            log: LogLevel::Fault,
+            log:       LogLevel::Fault,
             colors:    true,
         };
     }
 }
 
 impl Config {
-    pub fn setup() -> io::Result<()> {
+    pub fn setup(using_local: bool) -> io::Result<()> {
+        *USING_LOCAL.write().unwrap() = using_local;
+
         let config_dir = match dirs::config_dir() {
             Some(o) => o,
             None => {
@@ -50,9 +53,14 @@ impl Config {
             },
         };
 
-        let config_file: PathBuf = PathBuf::from(format!("{}/bakfile/config", config_dir.to_str().unwrap()));
+        let config_file = PathBuf::from(if using_local {
+            format!("{}/bakfile/config", config_dir.to_str().unwrap())
+        } else {
+            String::from("./.baker.config")
+        });
 
         if !config_file.exists() || !config_file.is_file() {
+            println!("NOT FOUND: {:?}", config_file);
             return Ok(*CONFIG.write().unwrap() = Default::default());
         }
 

@@ -6,9 +6,7 @@ pub struct Arguer {
 
 impl Arguer {
     pub fn new() -> Self {
-        let flags:    Vec<String> = args().filter(|x|  x.starts_with('-')).collect();
-
-        return Self { flags };
+        return Self { flags: args().filter(|x| x.starts_with('-')).collect() };
     }
 
     pub fn get_flag(&self, name: &str) -> Option<(&str, &str)> {
