@@ -23,7 +23,7 @@ fn main() {
     control::set_override(config.colors);
     Logger::set_level(config.log);
 
-    if let Err(e) = run_program() { Logger::exit(&format!("An error occurred: {}", e)); }
+    if let Err(e) = run_program(&argman) { Logger::exit(&format!("An error occurred: {}", e)); }
     Logger::info("Program ended");
 }
 
@@ -34,9 +34,16 @@ where
     rules.iter().find(cond).unwrap_or_else(|| Logger::exit(exitstr)).run();
 }
 
-fn run_program() -> io::Result<()> {
-    let content: String                 = BakFile::new(".baker")?.read()?;
-    let rules:   Vec<define_rule::Rule> = define_rule::Rule::gather(&content)?;
+fn run_program(argman: &Arguer) -> io::Result<()> {
+    let flag = argman.get_flag("rulefile");
+
+    let content = if flag.is_none() || flag.unwrap().1 == "" {
+        BakFile::new(".baker")?.read()?
+    } else {
+        BakFile::new(flag.unwrap().1)?.read()?
+    };
+
+    let rules: Vec<define_rule::Rule> = define_rule::Rule::gather(&content)?;
 
     for capture in Regex::new(r"(?m)^\$run.*$").unwrap().captures_iter(&content) {
         let mut names: Vec<&str> = capture[0].trim().split_whitespace().collect();
