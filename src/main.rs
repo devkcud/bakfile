@@ -2,6 +2,8 @@ mod baker;
 mod logger;
 mod rules;
 mod config;
+
+#[allow(dead_code)]
 mod arguer;
 
 use std::io;
@@ -17,11 +19,7 @@ use rules::define_rule;
 fn main() {
     let argman = Arguer::new();
 
-    if argman.has_flag("local") {
-        Logger::log("Hello!");
-    }
-
-    if let Err(e) = Config::setup() { Logger::exit(&format!("An error occurred: {}", e)); }
+    if let Err(e) = Config::setup(argman.has_flag("local") || argman.has_flag("L")) { Logger::exit(&format!("An error occurred: {}", e)); }
 
     let config = Config::get_config();
     control::set_override(config.colors);
