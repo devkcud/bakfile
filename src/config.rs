@@ -56,6 +56,7 @@ impl Config {
         });
 
         if !config_file.exists() || !config_file.is_file() {
+            println!("warn: config file not found: {}", config_file.to_str().unwrap());
             return Ok(*CONFIG.write().unwrap() = Default::default());
         }
 
