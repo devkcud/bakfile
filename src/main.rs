@@ -17,7 +17,7 @@ use rules::define_rule;
 fn main() {
     let argman = Arguer::new();
 
-    if let Err(e) = Config::setup(argman.has_flag("local") || argman.has_flag("L")) { Logger::exit(&format!("An error occurred: {}", e)); }
+    if let Err(e) = Config::setup(argman.has("--local") || argman.has("-L")) { Logger::exit(&format!("An error occurred: {}", e)); }
 
     let config = Config::get_config();
     control::set_override(config.colors);
@@ -35,9 +35,9 @@ where
 }
 
 fn run_program(argman: &Arguer) -> io::Result<()> {
-    let flag = argman.get_flag("rulefile");
+    let filearg = argman.get("file");
 
-    let content = BakFile::new(if flag.is_none() || flag.unwrap().1 == "" { Config::get_config().rulefilename } else { flag.unwrap().1 })?.read()?;
+    let content = BakFile::new(if filearg.is_none() || filearg.unwrap().1 == "" { Config::get_config().rulefilename } else { filearg.unwrap().1 })?.read()?;
     let rules: Vec<define_rule::Rule> = define_rule::Rule::gather(&content)?;
 
     for capture in Regex::new(r"(?m)^\$run.*$").unwrap().captures_iter(&content) {

@@ -1,26 +1,28 @@
 use std::env::args;
 
 pub struct Arguer {
-    flags: Vec<String>,
+    commands: Vec<String>,
 }
 
 impl Arguer {
     pub fn new() -> Self {
-        return Self { flags: args().filter(|x| x.starts_with('-')).collect() };
+        return Self { commands: args().collect() };
     }
 
-    pub fn get_flag(&self, name: &str) -> Option<(&str, &str)> {
-        let flag = if let Some(o) = self.flags.iter().find(|&x| &x.split_once('=').unwrap_or((x, "")).0[1..] == name) {
-            let (key, value) = o.split_once('=').unwrap_or((o, ""));
-            (&key[1..], value)
-        } else {
-            return None;
-        };
-
-        return Some((flag.0, flag.1));
+    pub fn get(&self, name: &str) -> Option<(&str, &str)> {
+        return self.commands
+            .iter()
+            .find_map(|command| {
+                let (key, value) = command.split_once('=').unwrap_or((command, ""));
+                if key == name {
+                    Some((key, value))
+                } else {
+                    None
+                }
+            });
     }
 
-    pub fn has_flag(&self, name: &str) -> bool {
-        return self.get_flag(name).is_some();
+    pub fn has(&self, name: &str) -> bool {
+        return self.get(name).is_some();
     }
 }
