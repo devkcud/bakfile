@@ -1,28 +1,22 @@
 use std::env::args;
 
-pub struct Arguer {
-    commands: Vec<String>,
+lazy_static::lazy_static! {
+    static ref ARGUER_ARGS: Vec<String> = args().collect();
 }
 
-impl Arguer {
-    pub fn new() -> Self {
-        return Self { commands: args().collect() };
-    }
+pub struct Arguer;
 
-    pub fn get(&self, name: &str) -> Option<(&str, &str)> {
-        return self.commands
+impl Arguer {
+    pub fn get(name: &str) -> Option<(&str, &str)> {
+        ARGUER_ARGS
             .iter()
             .find_map(|command| {
                 let (key, value) = command.split_once('=').unwrap_or((command, ""));
-                if key == name {
-                    Some((key, value))
-                } else {
-                    None
-                }
-            });
+                if key == name { Some((key, value)) } else { None }
+            })
     }
 
-    pub fn has(&self, name: &str) -> bool {
-        return self.get(name).is_some();
+    pub fn has(name: &str) -> bool {
+        Arguer::get(name).is_some()
     }
 }

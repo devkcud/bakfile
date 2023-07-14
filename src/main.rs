@@ -15,15 +15,13 @@ use regex::Regex;
 use rules::define_rule;
 
 fn main() {
-    let argman = Arguer::new();
-
-    if let Err(e) = Config::setup(argman.has("--local") || argman.has("-L")) { Logger::exit(&format!("An error occurred: {}", e)); }
+    if let Err(e) = Config::setup(Arguer::has("--local") || Arguer::has("-L")) { Logger::exit(&format!("An error occurred: {}", e)); }
 
     let config = Config::get_config();
     control::set_override(config.colors);
     Logger::set_level(config.log);
 
-    if let Err(e) = run_program(&argman) { Logger::exit(&format!("An error occurred: {}", e)); }
+    if let Err(e) = run_program() { Logger::exit(&format!("An error occurred: {}", e)); }
     Logger::info("Program ended");
 }
 
@@ -34,8 +32,8 @@ where
     rules.iter().find(cond).unwrap_or_else(|| Logger::exit(exitstr)).run();
 }
 
-fn run_program(argman: &Arguer) -> io::Result<()> {
-    let filearg = argman.get("file");
+fn run_program() -> io::Result<()> {
+    let filearg = Arguer::get("file");
 
     let content = BakFile::new(if filearg.is_none() || filearg.unwrap().1 == "" { Config::get_config().rulefilename } else { filearg.unwrap().1 })?.read()?;
     let rules: Vec<define_rule::Rule> = define_rule::Rule::gather(&content)?;

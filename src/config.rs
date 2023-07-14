@@ -67,8 +67,7 @@ impl Config {
             if options.len() != 2 { continue; }
 
             let key:   &str = options.get(0).unwrap();
-            let value: &str = options.get(1).unwrap();
-
+            let value: &str = Box::leak(options[1..].join(" ").into_boxed_str());
 
             match key {
                 "rulefilename" => CONFIG.write().unwrap().rulefilename = value,
