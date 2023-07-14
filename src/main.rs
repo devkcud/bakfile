@@ -12,7 +12,7 @@ use colored::{Colorize, control};
 use config::Config;
 use logger::Logger;
 use regex::Regex;
-use rules::define_rule;
+use rules::{define_rule, RuleManager};
 
 fn main() {
     if let Err(e) = Config::setup(Arguer::has("--local") || Arguer::has("-L")) { Logger::exit(&format!("An error occurred: {}", e)); }
@@ -37,7 +37,7 @@ fn run_program() -> io::Result<()> {
     let content = BakFile::new(if filearg.is_none() || filearg.unwrap().1 == "" { Config::get_config().rulefilename } else { filearg.unwrap().1 })?.read()?;
     let rules: Vec<define_rule::Rule> = define_rule::Rule::gather(&content)?;
 
-    for capture in Regex::new(r"(?m)^\$run.*$").unwrap().captures_iter(&content) {
+    for capture in Regex::new(RuleManager::get_rule_regex("run")).unwrap().captures_iter(&content) {
         let mut names: Vec<&str> = capture[0].trim().split_whitespace().collect();
         names.remove(0);
 
@@ -46,7 +46,7 @@ fn run_program() -> io::Result<()> {
         }
 
         for name in names {
-            find_rule(&rules, |x| x.name == name, &format!("No rule {} found at line {}", name.purple().bold(), (content.lines().position(|x| x == &capture[0]).unwrap() + 1).to_string().purple().bold()));
+            find_rule(&rules, |x| if name == define_rule::DEFAULT_DEFINER { x.is_default } else { x.name == name }, &format!("No rule {} found at line {}", name.purple().bold(), (content.lines().position(|x| x == &capture[0]).unwrap() + 1).to_string().purple().bold()));
         }
     };
 
