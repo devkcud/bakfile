@@ -1,7 +1,7 @@
 use std::env::args;
 
 lazy_static::lazy_static! {
-    static ref ARGUER_ARGS: Vec<String> = args().collect();
+    static ref ARGUER_ARGS: Vec<String> = args().skip(1).collect();
 }
 
 pub struct Arguer;

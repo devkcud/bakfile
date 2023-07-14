@@ -6,6 +6,8 @@ use regex::Regex;
 
 use crate::logger::Logger;
 
+const DEFAULT_DEFINER: &str = "*";
+
 #[derive(Clone, Debug, Hash, PartialEq, Eq)]
 pub struct Rule {
     pub name: String,
@@ -39,14 +41,15 @@ impl Rule {
                 let name = name_regex.replace_all(arg, "").to_string();
 
                 if name.is_empty() {
-                    Logger::exit(&format!("Rule {} at line {} | Proper define: {}", capture.red(), line_id.to_string().red(), "$define <name> [*]".green()));
+                    Logger::exit(&format!("Rule {} at line {} | Proper define: {}", capture.red(), line_id.to_string().red(), "$define <name> [".to_owned() + DEFAULT_DEFINER + "]".green().to_string().as_str()));
                 }
 
                 if rules.iter().find(|x| x.name == name).is_none() {
                     let default = rules.iter().find(|x| x.is_default);
-                    let is_default = arguments.len() > 1 && arguments[1] == "*" && default.is_none();
+                    let check_has_default = arguments.len() > 1 && arguments[1] == DEFAULT_DEFINER;
+                    let is_default = check_has_default && default.is_none();
 
-                    if default.is_some() {
+                    if check_has_default && default.is_some() {
                         Logger::warn(&format!("{} can't be defaulted. Rule {} is already the default", name.purple().bold(), default.unwrap().name.purple().bold()));
                     }
 
