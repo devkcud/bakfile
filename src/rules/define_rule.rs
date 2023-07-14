@@ -17,7 +17,10 @@ pub struct Rule {
 
 impl Rule {
     pub fn gather(content: &str) -> io::Result<Vec<Self>> {
-        Logger::info("Started gathering define rules");
+        if content.trim().is_empty() {
+            return Err(io::Error::new(io::ErrorKind::InvalidData, "File is empty"));
+        }
+
         let mut rules: Vec<Self> = Vec::new();
 
         let name_regex = Regex::new(r"[^a-zA-Z0-9]").unwrap();
@@ -70,7 +73,7 @@ impl Rule {
     }
 
     pub fn run(&self) {
-        Logger::info(&format!("Running rule {} ({} commands)", self.name.purple().bold(), self.commands.len().to_string().purple().bold()));
+        Logger::log(&format!("Running rule {} ({} commands)", self.name.purple().bold(), self.commands.len().to_string().purple().bold()));
 
         for command in self.commands.iter() {
             match Command::new("sh").arg("-c").arg(command).output() {
@@ -78,7 +81,5 @@ impl Rule {
                 Err(e) => Logger::error(&e.to_string()),
             }
         }
-
-        Logger::info(&format!("Done running rule {} ({} commands)", self.name.purple().bold(), self.commands.len().to_string().purple().bold()));
     }
 }

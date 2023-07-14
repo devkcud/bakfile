@@ -22,7 +22,6 @@ fn main() {
     Logger::set_level(config.log);
 
     if let Err(e) = run_program() { Logger::exit(&format!("An error occurred: {}", e)); }
-    Logger::info("Program ended");
 }
 
 fn find_rule<T>(rules: &[define_rule::Rule], cond: T, exitstr: &str) -> ()

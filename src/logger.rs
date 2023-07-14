@@ -48,13 +48,6 @@ impl Logger {
         *log_level = level;
     }
 
-    pub fn info(what: &str) {
-        let log_level = LOG_LEVEL.lock().unwrap();
-        if *log_level != LogLevel::Full && *log_level != LogLevel::Info { return; }
-
-        println!("{}  {} {}", get_current_time(), "INFO".bright_green().bold(), what);
-    }
-
     pub fn log(what: &str) {
         let log_level = LOG_LEVEL.lock().unwrap();
         if *log_level != LogLevel::Full && *log_level != LogLevel::Info { return; }
